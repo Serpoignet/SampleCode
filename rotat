@@ -1,0 +1,57 @@
+
+
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class rotat : MonoBehaviour
+{
+
+    public enum RotationAxes { XandY = 0, SourisX = 7 }
+
+    public RotationAxes axes = RotationAxes.XandY;
+
+    public float sensitivityX = 15F; //----------------------- Sensibilité autour de l'axe x
+
+    public float sensitivityY = 15F; //----------------------- Sensibilité autour de l'axe y
+
+
+    public float minimumX = -360F; //----------------------- Minimum de l'angle de rotation de l'axe x
+
+    public float maximumX = 360F; //----------------------- Maximum de l'angle de rotation de l'axe x
+
+
+    public float minimumY = -60F; //----------------------- Minimum de l'angle de rotation de l'axe y
+
+    public float maximumY = 60F; //----------------------- Maximum de l'angle de rotation de l'axe y
+
+
+    float rotationY = 0F;
+    // Use this for initialization
+    void Start()
+    {
+
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        if (Input.GetMouseButton(1)) //----------------------- Si le joueur clique sur le bouton droit de la souris
+        {
+            /*----------------------- Nous avons trouvé la partie en dessous sur le site officiel d'Unity3D 
+             vu la difficulté qu'on avait pour établir la rotation de la caméra par nous même */
+
+            float rotationX = transform.localEulerAngles.y + Input.GetAxis("Mouse X") * sensitivityX;
+
+
+            rotationY += Input.GetAxis("Mouse Y") * sensitivityY;
+
+            rotationY = Mathf.Clamp(rotationY, minimumY, maximumY);
+
+
+            transform.localEulerAngles = new Vector3(-rotationY, rotationX, 0);
+
+            
+        }
+    }
+}
