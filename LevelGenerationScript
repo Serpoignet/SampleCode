@@ -1,0 +1,41 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class LevelGenerationScript : MonoBehaviour {//-----------------------Crée le monde
+	public int maxWorldSize;
+	public GameObject[] world;
+	public int starAmount;
+	StarGeneration StarList;
+    public GameObject StarPrefab;
+    public GameObject PlanetPrefab;
+    public GameObject Univers;
+
+
+    // Use this for initialization
+    void Start () {
+        //Set the random seed (otherwise random doesn't work)
+        Random.InitState((int)System.DateTime.Now.Ticks);
+        int worldSize = Random.Range(maxWorldSize / 2, maxWorldSize);
+        StarGeneration StarList = ScriptableObject.CreateInstance("StarGeneration") as StarGeneration;//-----------------------Génère une instance du script StarGeneration
+        StarList.createStars (starAmount, worldSize);//-----------------------cette méthode construit le monde
+
+
+
+        /*ScriptListePlanetes ListePlanetes = ScriptableObject.CreateInstance("ScriptListePlanetes") as ScriptListePlanetes;
+        ListePlanetes.Stars = StarList.getCreatedStars();
+        ListePlanetes.setPlanets();
+        Planetes Planetes = Univers.GetComponent<Planetes>();
+        Planetes.listePlanetes = ListePlanetes.getPlanets();*/
+    }
+
+    // Update is called once per frame
+    void Update () {
+		/*foreach(GameObject Star in StarGeneration.createdStars)
+        {
+            Variables Var = Star.GetComponent<Variables>();
+            Debug.Log(Var.getSize());
+            Debug.Log(Star.size);
+        }*/
+	}
+}
