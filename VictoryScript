@@ -1,0 +1,60 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class VictoryScript : MonoBehaviour {//-----------------------Vérifie si un joueur a gagné
+    private GameObject Univers;
+
+    // Use this for initialization
+    void Start () {
+        Univers = GameObject.Find("Univers");
+    }
+	
+	// Update is called once per frame
+	void Update() {
+        int a = getFirstNonNeutralPlanetPossessor();//-----------------------on cherche le premier joueur dans la liste à posséder une planète non neutre car si lui ne gagne pas, personne ne gagne
+        bool AWon = true;
+        if (a != 0)//-----------------------si ce joueur existe alors on regarde s'il a gagné
+        {
+            for(int i = 0; i< Univers.GetComponent<Possessions>().possessionPlanetes.Count; i++)
+            {
+                if(Univers.GetComponent<Possessions>().possessionPlanetes[i] != 0 && Univers.GetComponent<Possessions>().possessionPlanetes[i] != a)//-----------------------si une planète existe qui n'est ni neutre, ni la sienne alors il n'a pas gagné
+                {
+                    AWon = false;
+                }
+            }
+        }
+        if (AWon)//-----------------------si cette planète n'existe pas, le joueur a gagné
+        {
+            endGame(a);
+        }
+
+    }
+
+    public int getFirstNonNeutralPlanetPossessor()//-----------------------on cherche le premier joueur dans la liste à posséder une planète non neutre car si lui ne gagne pas, personne ne gagne
+    {
+        for (int i = 0; i < Univers.GetComponent<Possessions>().possessionPlanetes.Count; i++)
+        {
+            if (Univers.GetComponent<Possessions>().possessionPlanetes[i] != 0)
+            {
+                return Univers.GetComponent<Possessions>().possessionPlanetes[i];
+            }
+        }
+        return 0;
+    }
+
+    public void endGame(int Winner)//-----------------------on arrête le jeu en arrêtant tous les vaisseaux pour le montrer, plus personne ne peut controller les vaisseaux
+    {
+        Debug.Log("Victory by player " + Winner);
+        for (int i = 0; i < Univers.GetComponent<Possessions>().possessionFlottes.Count; i++)
+        {
+            Univers.GetComponent<Flottes>().cancelOrder(i);
+            if(Univers.GetComponent<Possessions>().possessionFlottes[i] != Winner)//-----------------------on détruit toutes les flottes n'appartenant pas au vainqueur
+            {
+                Univers.GetComponent<Flottes>().destructionFlotte(i);
+                Univers.GetComponent<Possessions>().deleteFleet(i);
+                Destroy(GameObject.Find("Fleet " + i as string));
+            }
+        }
+    }
+}
