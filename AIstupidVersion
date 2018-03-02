@@ -1,0 +1,145 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class AIstupidVersion : MonoBehaviour {
+    public int controlledPlayer;
+    public int threshold = 16;
+    private GameObject Univers;
+    private List<GameObject> listePlanetes;
+    private List<int> listeTroupesPlanetes;
+    private List<GameObject> listeFlottes;
+    private List<int> listePossessionFlottes;
+    private List<int> listePossessionPlanetes;
+    public int threatDistance = 60;
+    private List<int[]> listeCombatsFlotteFlotte = new List<int[]>();
+    private List<int[]> listeCombatsPlaneteFlotte = new List<int[]>();
+    private int n;
+
+    // Use this for initialization
+    void Start () {
+        Univers = GameObject.Find("Univers");
+        listePlanetes = Univers.GetComponent<Planetes>().listePlanetes;
+        n = 0;
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        listeFlottes = Univers.GetComponent<Flottes>().listeFlottes;
+        listePossessionFlottes = Univers.GetComponent<Possessions>().possessionFlottes;
+        listePossessionPlanetes = Univers.GetComponent<Possessions>().possessionPlanetes;
+        listeTroupesPlanetes = Univers.GetComponent<Planetes>().listeTroupesPlanetes;
+
+
+        //if (Time.time >= n)
+        //{
+        if (controlledPlayer != 0 && threatTest(threatDistance))
+        {
+            //defend(); //-----------------------s'il y a une menace on se défend
+        }
+        if (controlledPlayer != 0)
+            {
+                for (int i = 0; i < listePossessionFlottes.Count; i++)
+                {
+                    /*if (listePossessionFlottes[i] == controlledPlayer && listeFlottes[i].GetComponent<GererFlotte>().nbVaisseaux >= threshold)
+                    {
+                        conquerOpportunities(i);
+                    }*/
+                }
+                for (int i = 0; i < listePossessionPlanetes.Count; i++)//-----------------------chaque planète assez pleine crée une flotte et la lance au combat
+            {
+                    if (listePossessionPlanetes[i] == controlledPlayer && listeTroupesPlanetes[i] >= threshold)
+                    {
+                        Univers.GetComponent<Flottes>().CreateFlotte(i);
+                        conquerOpportunities(Univers.GetComponent<Flottes>().listeFlottes.Count - 1);
+                    }
+                }
+            }
+        //}
+        //n += 1;
+    }
+
+    private bool threatTest(int threatDistance) //-----------------Décide de la présence ou non d'une menace
+    {
+        int[] couple = new int[2];
+        couple[0] = -1;
+        couple[1] = -1;
+        listeCombatsFlotteFlotte.Add(couple);
+        listeCombatsPlaneteFlotte.Add(couple);
+
+        /*for (int i = 0; i < listeFlottes.Count; i++)
+        {
+            for (int j = i; j < listeFlottes.Count; j++)
+            {
+                if (listePossessionFlottes[i] == controlledPlayer && listePossessionFlottes[j] != 0 && listePossessionFlottes[i] != listePossessionFlottes[j] && Vector3.Distance(listeFlottes[i].transform.position, listeFlottes[j].transform.position) < threatDistance)
+                {
+                    couple = new int[2];
+                    couple[0] = i;
+                    couple[1] = j;
+                    Debug.Log("AI couple " + couple[0] + " " + couple[1]);
+                    listeCombatsFlotteFlotte.Add(couple);
+                }
+            }
+        }*/
+
+        for (int j = 0; j < listePossessionPlanetes.Count; j++)//-----------------------on recherche tous les couples flotte alliée / planète ennemie
+        {
+            for (int i = 0; i < listeFlottes.Count; i++)
+            {
+                if (listePossessionPlanetes[j] == controlledPlayer && listePossessionFlottes[i] != 0 && listePossessionFlottes[i] != controlledPlayer && Vector3.Distance(listeFlottes[i].transform.position, Univers.GetComponent<Planetes>().getPlanet(j).transform.position) < threatDistance)
+                {
+                    couple = new int[2];
+                    couple[0] = j; //Planete
+                    couple[1] = i; //Flotte
+                    Debug.Log("AI couple " + couple[0] + " " + couple[1]);
+                    listeCombatsPlaneteFlotte.Add(couple);//-----------------------on rajoute le couple s'il convient
+                }
+            }
+        }
+
+        if (listeCombatsFlotteFlotte.Count > 1 || listeCombatsPlaneteFlotte.Count > 1)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    public void defend()  //-----------------Attaque les flottes qui représentent une menace
+    {
+        /*foreach (int[] coupleCombat in listeCombatsFlotteFlotte)
+        {
+            if (coupleCombat[0] != -1 && coupleCombat[1] != -1)
+            {
+                Univers.GetComponent<Flottes>().deplacerVersFlotte(coupleCombat[0], coupleCombat[1]);
+            }
+        }*/
+        foreach (int[] coupleCombat in listeCombatsPlaneteFlotte) //On crée des flottes sur les planètes menacées et on attaque les menaces
+        {
+            if (coupleCombat[0] != -1 && coupleCombat[1] != -1)
+            {
+                Univers.GetComponent<Flottes>().CreateFlotte(coupleCombat[0]);
+                Univers.GetComponent<Flottes>().deplacerVersFlotte(Univers.GetComponent<Flottes>().listeFlottes.Count - 1, coupleCombat[1]);
+                Debug.Log( "IA " + Univers.GetComponent<Possessions>().accessPlanetPossession(coupleCombat[0]) + " est attaquée par " + Univers.GetComponent<Possessions>().accessFleetPossession(coupleCombat[1]) + ". Envoie de la flotte " + (Univers.GetComponent<Flottes>().listeFlottes.Count - 1) as string);
+            }
+        }
+    }
+
+    public void conquerOpportunities(int numeroFlotte)//-----------------Chaque flotte cherche des opportunités
+    {
+        float distanceMinimum = GameObject.Find("LevelGeneration").GetComponent<LevelGenerationScript>().maxWorldSize;
+        int indexPlaneteAttaquee = 0;
+        for (int i=0; i<listePossessionPlanetes.Count; i++)
+        {
+            if(listePossessionPlanetes[i] != controlledPlayer && Vector3.Distance(listeFlottes[numeroFlotte].transform.position, Univers.GetComponent<Planetes>().getPlanet(i).transform.position) < distanceMinimum) //-----------------on trouve la planète ennemie la plus proche
+            {
+                distanceMinimum = Vector3.Distance(listeFlottes[numeroFlotte].transform.position, listePlanetes[i].transform.position);
+                indexPlaneteAttaquee = i;
+            }
+        }
+        Univers.GetComponent<Flottes>().deplacerVersPlanete(numeroFlotte, indexPlaneteAttaquee);//-----------------on attaque la planète ennemie la plus proche
+}
+}
