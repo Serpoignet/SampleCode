@@ -1,0 +1,37 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class StartScript : MonoBehaviour {//-----------------------s'occupe de commencer la partie
+    public Canvas MainMenu;
+    public Canvas option;
+    public Canvas play;
+    public Canvas quit;
+    private GameObject Univers;
+
+
+    public void startButton()//-----------------------fonction pour quand on clique sur le bouton start game
+    {
+        Univers = GameObject.Find("Univers");
+        MainMenu.enabled = false;
+        option.enabled = false;
+        play.enabled = false;
+        quit.enabled = false;
+
+        //-----------------------on donne une planète à chaque joueur, ici il y a 3 joueurs
+        //Joueur 0
+        Univers.GetComponent<Planetes>().replaceByPlanetDouble(0, 1);
+        Univers.GetComponent<Possessions>().possessionPlanetes[0] = 1;
+        Univers.GetComponent<Planetes>().setTroops(0, 0);
+
+        //Joueur 1
+        //Univers.GetComponent<Planetes>().replaceByPlanetDouble(10, 2);
+        //Univers.GetComponent<Possessions>().possessionPlanetes[10] = 2;
+        //Univers.GetComponent<Planetes>().setTroops(10, 0);
+
+        //Joueur 2
+        Univers.GetComponent<Planetes>().replaceByPlanetDouble(20, 3);
+        Univers.GetComponent<Possessions>().possessionPlanetes[20] = 3;
+        Univers.GetComponent<Planetes>().setTroops(20, 0);
+    }
+}
