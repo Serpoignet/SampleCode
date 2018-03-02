@@ -1,0 +1,48 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class IAGenerator : MonoBehaviour {//-----------------------Génère les IA que l'on s^écifie dans le start
+
+    public int nombreIA;
+    private GameObject prefabIA;
+    private List<GameObject> listeIA;
+    private GameObject IAinstance1;
+    private GameObject IAinstance2;
+    private GameObject IAinstance3;
+    private GameObject IAinstance4;
+
+
+    // Use this for initialization
+    void Start()
+    {
+        List<GameObject> listeIA = new List<GameObject>();
+
+
+        prefabIA = (GameObject)Resources.Load("IA", typeof(GameObject));
+
+
+        /*IAinstance1 = Instantiate(prefabIA, new Vector3(0f, 0f, 0f), Quaternion.identity) as GameObject;//-----------------------instanciation de l'objet IA de base
+        IAinstance1.name = "IA 1";
+
+        IAinstance1.GetComponent<AIstupidVersion>().controlledPlayer = 1;
+
+        listeIA.Add(IAinstance1);
+
+        IAinstance2 = Instantiate(prefabIA, new Vector3(0f, 0f, 0f), Quaternion.identity) as GameObject;
+        IAinstance2.name = "IA 2";
+
+        IAinstance2.GetComponent<AIstupidVersion>().controlledPlayer = 2;
+
+        listeIA.Add(IAinstance2);
+        IAinstance3 = Instantiate(prefabIA, new Vector3(0f, 0f, 0f), Quaternion.identity) as GameObject;
+        IAinstance3.name = "IA 3";
+
+        IAinstance3.GetComponent<AIstupidVersion>().controlledPlayer = 3;*/
+    }
+
+    // Update is called once per frame
+    void Update () {
+		
+	}
+}
