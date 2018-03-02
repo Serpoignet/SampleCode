@@ -1,0 +1,23 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class GererFlotte : MonoBehaviour {
+    public int nbVaisseaux;//-----------------------le nombre de vaisseaux de la flotte à chaque temps t
+
+    // Use this for initialization
+    void Start () {
+		
+	}
+
+    public void destructionVaisseaux(int n)//-----------------------réduit le nombre de vaisseaux dans une flotte
+    {
+        nbVaisseaux -= n;
+    }
+
+
+	// Update is called once per frame
+	void Update () {
+		
+	}
+}
