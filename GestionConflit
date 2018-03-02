@@ -1,0 +1,62 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class GestionConflit : MonoBehaviour {
+
+    private GameObject Univers;
+
+	// Use this for initialization
+	void Start () {
+        Univers = GameObject.Find("Univers");
+	}
+	
+	// Update is called once per frame
+	void Update () {
+		
+	}
+
+    public bool isAttackPossible(int numeroFlotteAttanquant, int numeroCible, char typeCible)//-----------------------Donne l'information de si les deux objets sont alliés ou ennemis, true s'ils sont ennemis
+    {
+        int joueurAttaquant = Univers.GetComponent<Possessions>().accessFleetPossession(numeroFlotteAttanquant);
+        int joueurDefendant;
+        char P = 'P';
+        if (typeCible < P)
+        {
+            joueurDefendant = Univers.GetComponent<Possessions>().accessFleetPossession(numeroCible);
+            if (joueurAttaquant == joueurDefendant)
+            {
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
+        else if (typeCible > P)
+        {
+            joueurDefendant = Univers.GetComponent<Possessions>().accessFleetPossession(numeroCible);
+            if (joueurAttaquant == joueurDefendant)
+            {
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
+        else
+        {
+            joueurDefendant = Univers.GetComponent<Possessions>().accessPlanetPossession(numeroCible);
+            if(joueurAttaquant == joueurDefendant)
+            {
+                return false;
+            }else
+            {
+                return true;
+            }
+        }
+    }
+
+
+}
