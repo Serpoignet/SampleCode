@@ -1,0 +1,89 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class scriptDebile : MonoBehaviour
+{//-----------------------Script de TEST
+
+    private GameObject Univers;
+    public GameObject montre;
+
+    void Start()
+    {
+        Univers = GameObject.Find("Univers");
+    }
+    
+    void Update()
+    {
+        if (Input.GetKey("b"))//-----------------------teste la création de flottes
+        {
+            //Debug.Log(Univers.GetComponent<Planetes>().checkPlanet(4));
+            Univers.GetComponent<Flottes>().CreateFlotte(2);
+        }
+        if (Input.GetKey("n"))//-----------------------teste la destruction de flottes
+        {
+            Univers.GetComponent<Flottes>().destructionFlotte(0);
+        }
+        if (Input.GetKey("k"))//-----------------------teste le changement de couleur des planètes
+        {
+            StartCoroutine(LOLILOL());
+        }
+        if (Input.GetKey("u"))//-----------------------teste l'interprétation des noms de planètes
+        {
+            Univers.GetComponent<PlaneteClickee>().interpretString();
+        }
+        if (Input.GetKey("e"))//-----------------------teste l'existance des objets
+        {
+            montre = GameObject.Find("Planète 10");
+            Debug.Log(montre.name);
+        }
+        if (Input.GetKeyDown("a"))//-----------------------teste le script conquerPlanet de possessions
+        {
+            Univers.GetComponent<Possessions>().conquerPlanet(1, 2, 1);
+            Univers.GetComponent<Possessions>().conquerPlanet(2, 0, 2);
+        }
+        if (Input.GetKeyDown("j"))//-----------------------teste le déplacement basique
+        {
+            float[] pos = new float[3];
+            pos[0] = 0.0f; pos[1] = 0.0f; pos[2] = 0.0f;
+            Univers.GetComponent<Flottes>().deplacer(1, pos);
+            Univers.GetComponent<Flottes>().deplacer(2, pos);
+            Univers.GetComponent<Flottes>().deplacer(3, pos);
+            Univers.GetComponent<Flottes>().deplacer(4, pos);
+            Univers.GetComponent<Flottes>().deplacer(5, pos);
+            Univers.GetComponent<Flottes>().deplacer(6, pos);
+            pos[0] = -1.0f; pos[1] = -1.0f; pos[2] = -1.0f;
+            Univers.GetComponent<Flottes>().deplacer(7, pos);
+            pos[0] = 1.0f; pos[1] = 1.0f; pos[2] = 1.0f;
+            Univers.GetComponent<Flottes>().deplacer(8, pos);
+        }
+
+        if (Input.GetKeyDown("m"))//-----------------------teste le déplacement vers une planète
+        {
+            Univers.GetComponent<Flottes>().deplacerVersPlanete(0, 3);
+            Univers.GetComponent<Flottes>().deplacerVersPlanete(1, 0);
+            Univers.GetComponent<Flottes>().deplacerVersPlanete(2, 1);
+            Univers.GetComponent<Flottes>().deplacerVersPlanete(3, 2);
+            Univers.GetComponent<Flottes>().deplacerVersPlanete(4, 9);
+            Univers.GetComponent<Flottes>().deplacerVersPlanete(5, 20);
+            Univers.GetComponent<Flottes>().deplacerVersPlanete(6, 15);
+            Univers.GetComponent<Flottes>().deplacerVersPlanete(7, 26);
+            Univers.GetComponent<Flottes>().deplacerVersPlanete(8, 21);
+        }
+    }
+
+    IEnumerator LOLILOL()
+    {
+        
+        for (int i=1; i<=7; i++)
+        {
+            for (int j=0; j <= 15; j++)
+            {
+                Univers.GetComponent<Planetes>().replaceByPlanetDouble(j, i);
+            }
+            yield return new WaitForSeconds(2f);
+        }
+        yield return new WaitForSeconds(0.1f);
+    }
+
+}
