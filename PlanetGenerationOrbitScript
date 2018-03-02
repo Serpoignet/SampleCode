@@ -1,0 +1,77 @@
+using UnityEngine;
+using System.Collections;
+using System.Collections.Generic;
+
+public class PlanetGenerationOrbitScript : ScriptableObject
+{
+    public GameObject PlanetPrefab;
+    Vector3 Offset = new Vector3();
+    private List<GameObject> createdPlanets = new List<GameObject>();
+    private GameObject PlanetPrefabInstance;
+    public GameObject Univers;
+    public int k;
+
+    public void createPlanetsOrbit(int sphereOfInfluence, GameObject StarPrefabInstance, int worldSize)//-----------------------créée un nombre indéterminé (pseudo-aléatoirement) de planètes sur une orbite différente chacune
+    {
+        
+        Univers = GameObject.Find("Univers");
+        k = Univers.GetComponent<Planetes>().listePlanetes.Count;
+        PlanetPrefab = (GameObject)Resources.Load("Planet Grey", typeof(GameObject));
+
+        float r = StarPrefabInstance.transform.localScale.x;
+        float h = (sphereOfInfluence - 3 * r)/3; //-----------------------ARBITRAIRE
+        float rmin =  3  *  r;//-----------------------ARBITRAIRE
+
+        while (rmin < sphereOfInfluence)//-----------------------tant que l'on n'est pas en dehors de la sphère d'influence (attraction) de l'étoile, on crée des planètes
+        {
+            float distancePlaneteEtoile = Random.Range(rmin, rmin + h);//-----------------------choisit le rayon de la prochaine planète
+
+
+            if (distancePlaneteEtoile < sphereOfInfluence)//-----------------------tant que l'on n'est pas en dehors de la sphère d'influence (attraction) de l'étoile, on crée des planètes
+            {
+                float phi = Random.Range(-1* Mathf.PI, Mathf.PI);
+                //int rand1 = Random.Range(0, 2);
+                //float rand2 = (0.5f - rand1) * 2f;
+
+                //PlanetGenerationScript Planets = PlanetGenerationScript.CreateInstance("PlanetGenerationScript") as PlanetGenerationScript;
+                //Planets.createPlanets(sphereOfInfluence, planetAmount, StarPrefabInstance, worldSize);
+                SphericalCartesian transformation = SphericalCartesian.CreateInstance("SphericalCartesian") as SphericalCartesian;
+                Vector3 Alison = transformation.toCartesian(distancePlaneteEtoile, Mathf.PI/2f, phi);
+
+                //-----------------------on instantie la planète et on lui donne toutes les variables qu'il faut
+                //instantiate
+                PlanetPrefabInstance = Instantiate(PlanetPrefab, StarPrefabInstance.transform.position + Alison, Quaternion.identity) as GameObject;
+
+                //give speed
+                float speed = Mathf.Pow(distancePlaneteEtoile, -1.5f) * sphereOfInfluence;
+
+                //Save position
+                PlanetPositionScript Position = PlanetPrefab.GetComponent<PlanetPositionScript>();
+                Position.R = distancePlaneteEtoile;
+                Position.phi = phi;
+                Position.speed = speed;
+
+                //Set the parent as the star
+                PlanetPrefabInstance.transform.SetParent(StarPrefabInstance.transform, true);
+
+                //Change planet name
+                PlanetPrefabInstance.name = "Planet " + k as string;
+
+                // Add it to our created objects
+                createdPlanets.Add(PlanetPrefabInstance);
+
+                rmin = distancePlaneteEtoile + 3 * r / 10;//ARBITRAIRE
+
+                k += 1;
+            }
+        }
+        Univers.GetComponent<Planetes>().addPlanets(createdPlanets);
+        Univers.GetComponent<Possessions>().addPlanets(createdPlanets);
+    }
+
+    public List<GameObject> getCreatedPlanets()//-----------------------renvoie les planètes créées par cette instance
+    {
+        return createdPlanets;
+    }
+
+}
