@@ -1,0 +1,76 @@
+using UnityEngine;
+using System.Collections;
+using System.Collections.Generic;
+
+public class StarGeneration : ScriptableObject
+{//-----------------------Crée les étoiles
+    GameObject StarPrefabInstance;
+    Vector3 Offset = new Vector3();
+    public List<Vector3> createdStarsPositions;
+    public List<GameObject> createdStars = new List<GameObject>();
+    int currentAmountStars;
+    private int distanceToCenter;
+    int planetAmount;
+    GameObject StarPrefab;
+    int sphereOfInfluence;
+
+
+    public void createStars(int starAmount, int worldSize)//-----------------------instancie les étoiles
+    {
+        StarPrefab = (GameObject)Resources.Load("Star", typeof(GameObject));//-----------------------le préfabriqué des étoiles
+
+        for (int i = 0; i < starAmount; i++)
+        {
+            currentAmountStars = i;
+            //Debug.Log(i);
+            /*isInsideSphere = false;
+            while (isInsideSphere == false)
+            {
+                int a = Random.Range(-worldSize, worldSize);
+                int b = Random.Range(-worldSize, worldSize);
+                int c = Random.Range(-worldSize, worldSize);
+                distanceToCenter = a * a + b * b + c * c; //A changer
+                if (distanceToCenter < worldSize)
+                {
+                    isInsideSphere = true;
+                }
+            }
+            
+            Offset = new Vector3(a, b, c);*/
+            Offset = Random.insideUnitSphere * worldSize / 3;
+            //Debug.Log(Offset);
+
+            //instantiate
+            StarPrefabInstance = Instantiate(StarPrefab, Offset, Quaternion.identity) as GameObject;
+           
+            // Add it to our created objects
+            createdStars.Add(StarPrefabInstance);
+
+            // Add the new position
+            //createdStarsPositions.Add(Offset);//TODO à corriger
+
+            //planetAmount = 5;
+            int size = Random.Range(10, 21);
+            int sphereOfInfluence = Random.Range(size * 10, size * 20);
+
+            StarPrefabInstance.transform.localScale = new Vector3(size, size, size);
+
+            StarPrefabInstance.GetComponent<Variables>().sphereOfInfluence = this.sphereOfInfluence;
+            //-----------------------on génère les planètes pour chaque étoile
+            PlanetGenerationOrbitScript Planets = PlanetGenerationOrbitScript.CreateInstance("PlanetGenerationOrbitScript") as PlanetGenerationOrbitScript;
+            Planets.createPlanetsOrbit(sphereOfInfluence, StarPrefabInstance, worldSize);
+
+            //PlanetGenerationScript Planets = PlanetGenerationScript.CreateInstance("PlanetGenerationScript") as PlanetGenerationScript;
+            //Planets.createPlanets(sphereOfInfluence, planetAmount, StarPrefabInstance, worldSize);
+        }
+    }
+
+    public List<GameObject> getCreatedStars()//-----------------------renvoie la liste des étoiles créées par le script
+    {
+        return createdStars;
+    }
+
+}
+
+            /*Variables Var = StarPrefabInstance.GetComponent<Variables>();
+            Debug.Log(Var.getSize());*/
