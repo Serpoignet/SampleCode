@@ -1,0 +1,114 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class Planetes : MonoBehaviour {//-----------------------gère les planètes et leurs troupes
+
+    public List<GameObject> listePlanetes;
+    public List<int> listeTroupesPlanetes;
+    private int n;
+
+	// Use this for initialization
+	void Start () {
+        n = 0;
+        List<GameObject> listePlanetes = new List<GameObject>();
+        List<int> listeTroupesPlanetes = new List<int>();
+}
+	
+	// Update is called once per frame
+	void Update () {
+        if(Time.time >= n)//-----------------------toutes les secondes, si la planète n'est pas neutre on incrémente les troupes de la planète à chaque seconde
+        {
+            for(int i = 0; i<listeTroupesPlanetes.Count; i++)
+            {
+                if(GameObject.Find("Univers").GetComponent<Possessions>().possessionPlanetes[i] != 0)
+                {
+                    listeTroupesPlanetes[i] += 1;
+                }
+            }
+            n += 1;
+        }
+    }
+
+    public void addPlanets(List<GameObject> createdPlanets)//-----------------------ajoute une nouvelle planète dans les deux listes (utilisée à l'initialisation du monde)
+    {
+        foreach (GameObject PlanetX in createdPlanets)
+        {
+            listePlanetes.Add(PlanetX);
+            listeTroupesPlanetes.Add(0);
+        }
+    }
+
+    public int emptyPlanet(int index)//-----------------------vide une planète de ses troupes et renvoie le nombre de troupes présentes avant
+    {
+        int a = listeTroupesPlanetes[index];
+        listeTroupesPlanetes[index] = 0;
+        return a;
+    }
+
+    public int checkPlanet(int i)//-----------------------renvoie le nombre de troupes dans une planète
+    {
+        return listeTroupesPlanetes[i];
+    }
+
+    public GameObject getPlanet(int index)//-----------------------renvoie le GameObjet planète
+    {
+        return listePlanetes[index];
+    }
+
+    public void setTroops(int index, int nombreTroupes)//-----------------------modifie le nobre de troupes de la planète numéro index
+    {
+        listeTroupesPlanetes[index] = nombreTroupes;
+    }
+
+    public void replaceByPlanetDouble(int numeroPlanete, int numeroJoueur)//-----------------------change la couleur de la planète numeroPlanete pour la couleur du joueur numeroJoueur
+    {
+        GameObject PlanetPrefab = new GameObject();
+        GameObject PlanetToCopy = listePlanetes[numeroPlanete];
+        GameObject PlanetReplacement = new GameObject();
+        switch (numeroJoueur)
+        {
+            case 0:
+                PlanetPrefab = (GameObject)Resources.Load("Planet Grey", typeof(GameObject));
+                break;
+            case 1:
+                PlanetPrefab = (GameObject)Resources.Load("Planet Blue", typeof(GameObject));
+                break;
+            case 2:
+                PlanetPrefab = (GameObject)Resources.Load("Planet Red", typeof(GameObject));
+                break;
+            case 3:
+                PlanetPrefab = (GameObject)Resources.Load("Planet Green", typeof(GameObject));
+                break;
+            case 4:
+                PlanetPrefab = (GameObject)Resources.Load("Planet Orange", typeof(GameObject));
+                break;
+            case 5:
+                PlanetPrefab = (GameObject)Resources.Load("Planet Purple", typeof(GameObject));
+                break;
+            case 6:
+                PlanetPrefab = (GameObject)Resources.Load("Planet Pink", typeof(GameObject));
+                break;
+            case 7:
+                PlanetPrefab = (GameObject)Resources.Load("Planet Dark Green", typeof(GameObject));
+                break;
+            default:
+                Debug.Log("Incorrect programmer intelligence level.");
+                break;
+        }
+        PlanetReplacement = Instantiate(PlanetPrefab, PlanetToCopy.transform.position, Quaternion.identity);
+        PlanetReplacement.transform.SetParent(PlanetToCopy.transform.parent, true);
+        PlanetReplacement.transform.localScale = PlanetToCopy.transform.localScale;
+        PlanetReplacement.name = PlanetToCopy.name;
+        PlanetReplacement.GetComponent<PlanetPositionScript>().R = PlanetToCopy.GetComponent<PlanetPositionScript>().R;
+        PlanetReplacement.GetComponent<PlanetPositionScript>().phi = PlanetToCopy.GetComponent<PlanetPositionScript>().phi;
+        PlanetReplacement.GetComponent<PlanetPositionScript>().speed = PlanetToCopy.GetComponent<PlanetPositionScript>().speed;
+        
+        //replace planet
+        listePlanetes[numeroPlanete] = PlanetReplacement;
+        
+        //delete first planet
+        Destroy(PlanetToCopy);
+        
+    }
+}
