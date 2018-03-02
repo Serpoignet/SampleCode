@@ -1,0 +1,176 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class GestionDistances : MonoBehaviour {
+    private GameObject Univers;
+    private List<GameObject> listeFlottes;
+    private List<int> listePossessionFlottes;
+    private List<int[]> listeCombat;
+    private int[] couple;
+    private int k;
+
+
+    // Use this for initialization
+    void Start () {
+        Univers = GameObject.Find("Univers");
+}
+	
+    public void conquerPlanet(int numeroFlotte, int numeroPlanete)//-----------------------est appelé quand une flotte arrive sur une planète
+    {
+        int troupesPlanete = Univers.GetComponent<Planetes>().checkPlanet(numeroPlanete);
+        int vaisseauxFlotte = Univers.GetComponent<Flottes>().getFlotte(numeroFlotte).GetComponent<GererFlotte>().nbVaisseaux;
+        int nouvellesTroupesPlanete;
+
+        if (GameObject.Find("Gestionnaire").GetComponent<GestionConflit>().isAttackPossible(numeroFlotte, numeroPlanete, 'P'))//-----------------------si ennemie, tente de conquérir
+        {
+            nouvellesTroupesPlanete = troupesPlanete - vaisseauxFlotte;
+
+            if (nouvellesTroupesPlanete < 0)
+            {
+                Univers.GetComponent<Planetes>().replaceByPlanetDouble(numeroPlanete, Univers.GetComponent<Possessions>().accessFleetPossession(numeroFlotte));
+                Univers.GetComponent<Possessions>().possessionPlanetes[numeroPlanete] = Univers.GetComponent<Possessions>().accessFleetPossession(numeroFlotte);
+                nouvellesTroupesPlanete = vaisseauxFlotte - troupesPlanete;
+            }
+        }
+        else //-----------------------si alliée, se rajoute à sa garrison
+        {
+            nouvellesTroupesPlanete = troupesPlanete + vaisseauxFlotte;
+        }
+
+        Univers.GetComponent<Planetes>().setTroops(numeroPlanete, nouvellesTroupesPlanete);
+
+        Univers.GetComponent<Flottes>().destructionFlotte(numeroFlotte);
+        Univers.GetComponent<Possessions>().deleteFleet(numeroFlotte);
+        Destroy(GameObject.Find("Fleet " + numeroFlotte as string));//-----------------------la flotte est détruite dans tous les cas
+    }
+
+	// Update is called once per frame
+	void Update ()
+    {
+        List<int[]> listeCombat = new List<int[]>();
+        int[] couple = new int[2];
+        couple[0] = -1;
+        couple[1] = -1;
+        listeCombat.Add(couple);
+        listeFlottes = Univers.GetComponent<Flottes>().listeFlottes;
+        listePossessionFlottes = Univers.GetComponent<Possessions>().possessionFlottes;
+        
+        for(int i = 0; i<listeFlottes.Count; i++)
+        {
+            for (int j = i; j<listeFlottes.Count; j++)
+            {
+                if (listePossessionFlottes[i] != 0 && listePossessionFlottes[j] != 0 && listePossessionFlottes[i] != listePossessionFlottes[j] && Vector3.Distance(listeFlottes[i].transform.position, listeFlottes[j].transform.position) < 15)
+                {
+                    couple = new int[2];
+                    couple[0] = i;
+                    couple[1] = j;
+                    Debug.Log("couple " + couple[0] + " " + couple[1]);
+                    listeCombat.Add(couple);
+                }
+            }
+        }
+
+        if (listeCombat.Count > 1)
+        {
+            foreach (int[] coupleCombat in listeCombat)
+            {
+                if (coupleCombat[0] != -1 && coupleCombat[1] != -1)
+                {
+                    GameObject combattant1 = listeFlottes[coupleCombat[0]];
+                    GameObject combattant2 = listeFlottes[coupleCombat[1]];
+
+                    Debug.Log(" combat : " + coupleCombat[0] + " " + coupleCombat[1]);
+                    int nbVaisseaux1 = combattant1.GetComponent<GererFlotte>().nbVaisseaux;
+                    int nbVaisseaux2 = combattant2.GetComponent<GererFlotte>().nbVaisseaux;
+
+                    combattant1.GetComponent<GererFlotte>().destructionVaisseaux(nbVaisseaux2);
+                    combattant2.GetComponent<GererFlotte>().destructionVaisseaux(nbVaisseaux1);
+
+                    if (nbVaisseaux1 <= 0 && nbVaisseaux2 <= 0)
+                    {
+                        Univers.GetComponent<Flottes>().cancelOrder(coupleCombat[0]);
+                        Univers.GetComponent<Flottes>().destructionFlotte(coupleCombat[0]);
+                        Univers.GetComponent<Possessions>().deleteFleet(coupleCombat[0]);
+                        Destroy(GameObject.Find("Fleet " + coupleCombat[0] as string));
+
+                        Univers.GetComponent<Flottes>().cancelOrder(coupleCombat[1]);
+                        Univers.GetComponent<Flottes>().destructionFlotte(coupleCombat[1]);
+                        Univers.GetComponent<Possessions>().deleteFleet(coupleCombat[1]);
+                        Destroy(GameObject.Find("Fleet " + coupleCombat[1] as string));
+
+                        int bh = coupleCombat[0];
+                        int ch = coupleCombat[1];
+                        for (int ah = 0; ah < listeCombat.Count; ah++)
+                        {
+                            if (listeCombat[ah][1] == ch || listeCombat[ah][1] == bh)
+                            {
+                                listeCombat[ah][1] = -1;
+                            }
+                            if (listeCombat[ah][0] == ch || listeCombat[ah][0] == bh)
+                            {
+                                listeCombat[ah][0] = -1;
+                            }
+                        }
+                        coupleCombat[0] = -1;
+                        coupleCombat[1] = -1;
+
+                        Debug.Log("Flotte Détruite 1");
+                        Debug.Log("Flotte Détruite 2");
+                    }
+                    else if (nbVaisseaux1 <= 0)
+                    {
+                        Univers.GetComponent<Flottes>().cancelOrder(coupleCombat[0]);
+                        Univers.GetComponent<Flottes>().destructionFlotte(coupleCombat[0]);
+                        Univers.GetComponent<Possessions>().deleteFleet(coupleCombat[0]);
+                        Destroy(GameObject.Find("Fleet " + coupleCombat[0] as string));
+
+                        int bh = coupleCombat[0];
+                        for (int ah = 0; ah < listeCombat.Count; ah++)
+                        {
+                            if (listeCombat[ah][1] == bh)
+                            {
+                                listeCombat[ah][1] = -1;
+                            }
+                            if (listeCombat[ah][0] == bh)
+                            {
+                                listeCombat[ah][0] = -1;
+                            }
+                        }
+                        coupleCombat[0] = -1;
+
+                        Debug.Log("Flotte Détruite 1");
+                    }
+                    else
+                    {
+                        Univers.GetComponent<Flottes>().cancelOrder(coupleCombat[1]);
+                        Univers.GetComponent<Flottes>().destructionFlotte(coupleCombat[1]);
+                        Univers.GetComponent<Possessions>().deleteFleet(coupleCombat[1]);
+                        Destroy(GameObject.Find("Fleet " + coupleCombat[1] as string));
+                        
+                        int ch = coupleCombat[1];
+                        for (int ah = 0; ah < listeCombat.Count; ah++)
+                        {
+                            if (listeCombat[ah][1] == ch)
+                            {
+                                listeCombat[ah][1] = -1;
+                            }
+                            if (listeCombat[ah][0] == ch)
+                            {
+                                listeCombat[ah][0] = -1;
+                            }
+                        }
+                        coupleCombat[1] = -1;
+
+                        Debug.Log("Flotte Détruite 2");
+                    }
+                }
+            }
+
+            while(listeCombat.Count > 1)
+            {
+                listeCombat.RemoveAt(1);
+            }
+        }
+    }
+}
