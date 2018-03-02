@@ -1,0 +1,60 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class Possessions : MonoBehaviour {
+
+    public List<int> possessionPlanetes;//-----------------------contient le numéro du joueur possédant la planète à l'index pris
+    public List<int> possessionFlottes;//-----------------------contient le numéro du joueur possédant la flotte à l'index pris
+
+    // Use this for initialization
+    void Start()
+    {
+        List<int> possessionPlanetes = new List<int>();
+        List<int> possessionFlottes = new List<int>();
+    }
+
+    public void addPlanets(List<GameObject> createdPlanets)//-----------------------ajoute les planètes créées aux listes
+    {
+        GameObject Univers = GameObject.Find("Univers");
+        foreach (GameObject PlanetX in createdPlanets)
+        {
+            var strs = PlanetX.name.Split(" "[0]);
+            int k = int.Parse(strs[strs.Length - 1]);
+            Univers.GetComponent<Planetes>().setTroops( k, 14);
+            possessionPlanetes.Add(0);
+        }
+    }
+
+    public void addPlanet()//-----------------------ajoute une planète à la liste
+    {
+        possessionPlanetes.Add(0);
+    }
+
+    public void conquerPlanet(int index, int numeroJoueur, int numeroFlotte)//-----------------------change la possession d'une planète et gère le changement de couleur
+    {
+        possessionPlanetes[index] = numeroJoueur;
+        gameObject.GetComponent<Planetes>().replaceByPlanetDouble(index, numeroJoueur);
+        gameObject.GetComponent<Flottes>().conquete(index, numeroFlotte);
+    }
+
+    public void addFleet(int numeroJoueur)//-----------------------ajoute une flotte
+    {
+        possessionFlottes.Add(numeroJoueur);
+    }
+
+    public void deleteFleet(int index)//-----------------------détruit une flotte
+    {
+        possessionFlottes[index] = 0;
+    }
+
+    public int accessPlanetPossession(int index)//-----------------------renvoie le joueur qui possède la planète
+    {
+        return possessionPlanetes[index];
+    }
+
+    public int accessFleetPossession(int index)//-----------------------renvoie le joueur qui possède la flotte
+    {
+        return possessionFlottes[index];
+    }
+}
