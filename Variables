@@ -1,0 +1,157 @@
+using UnityEngine;
+using System.Collections;
+
+public class Variables : MonoBehaviour {
+
+    //-----------------------la plupart des variables ici sont ignorées pas la suite
+    public int size; // Sets the size of the star
+    public int sphereOfInfluence; // Sets the size of the stellar system
+    private int numberOfPlanets; // Sets the number of planets the stellar system will possess
+    private int angleDeviationX; // Sets the angle of deviation the system has compared to the general direction of universe expansion
+    private int angleDeviationY;
+    private int angleDeviationZ;
+    private Vector3 angleDeviation;
+    public int planetSpeed=10;
+    public float Timecounter = 0f;
+
+    /*IEnumerator RepairWorld()
+    {
+        yield return new WaitForSeconds(2);
+        transform.localScale = new Vector3(size, size, size);
+    }*/
+
+
+    // Use this for initialization
+    void Start()
+    {
+        // Set all values randomly
+        //size = Random.Range(10,21);
+        //sphereOfInfluence = Random.Range(size*10, size * 20);
+        numberOfPlanets = Random.Range(0, size*2);
+        angleDeviationX = Random.Range(0, 180);
+        angleDeviationY = Random.Range(0, 180);
+        angleDeviationZ = Random.Range(0, 180);
+
+        angleDeviation = new Vector3(angleDeviationX, angleDeviationY, angleDeviationZ);
+
+        // Use values
+        //StartCoroutine("RepairWorld");
+        //int boucle=0;
+
+        //let's take care of the planets
+        /*for(int i=0; i< gameObject.transform.childCount; i++)
+        {
+            this.gameObject.transform.GetChild(i);
+            //Delete all additionnal planets
+            /*if (i > numberOfPlanets)
+            {
+                Destroy(this.gameObject.transform.GetChild(i));
+            }
+
+            //Set planet size
+            //double relativePlanetSizeDouble = (double) Random.Range(25, 33) * size / 100.0;
+            float relativePlanetSize = (float) 0.1;
+            this.gameObject.transform.GetChild(i).transform.localScale = new Vector3(relativePlanetSize, relativePlanetSize, relativePlanetSize);
+
+            //change planet position if inconvenient
+            if (Vector3.Distance(this.gameObject.transform.GetChild(i).transform.position, this.gameObject.transform.position) < size * (1 + relativePlanetSize))
+            {
+                Vector3 Offset;
+                if (size * (1 + 2 * relativePlanetSize) < sphereOfInfluence)
+                {
+                    while (true)
+                    {
+                        Offset = Random.insideUnitSphere * sphereOfInfluence / 3;
+                        if (Vector3.Distance(Offset, new Vector3(0, 0, 0)) > size * (1 + relativePlanetSize))
+                        {
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    sphereOfInfluence *= 2;
+                    while (true)
+                    {
+                        boucle += 1;
+                        Offset = Random.insideUnitSphere * sphereOfInfluence / 3;
+                        if (Vector3.Distance(Offset, new Vector3(0, 0, 0)) > size * (1 + relativePlanetSize))
+                        {
+                            break;
+                        }
+                        if (boucle > 15)
+                        {
+                            Debug.Log("ERREUR");
+                            break;
+                        }
+                    }
+                }
+                //set LOCALposition
+                this.gameObject.transform.GetChild(i).transform.localPosition = Offset;
+            }
+        }*/
+    }
+
+    //Getters and Setters
+    public int getSize()
+    {
+        return size;
+    }
+
+
+    // Update is called once per frame
+    void Update ()
+    {
+        deplacementPlanetes();//-----------------------on déplace les planètes en orbite autour de l'étoile
+        Timecounter += Time.deltaTime;
+	}
+
+    private void deplacementPlanetes()
+    {
+
+
+        //SphericalCartesian transformation = SphericalCartesian.CreateInstance("SphericalCartesian") as SphericalCartesian; //-----------------------on aura besoin de transformer des vecteur cartésiens en polaires et inversemment
+        /*Debug.Log("1,2,3");
+        Vector3 Haha = transformation.toSpherical(1, -2, -3);
+        Debug.Log(Haha.x);
+        Debug.Log(Haha.y);
+        Debug.Log(Haha.z);
+        Haha = transformation.toCartesian(Haha.x, Haha.y, Haha.z);
+        Debug.Log(Haha.x);
+        Debug.Log(Haha.y);
+        Debug.Log(Haha.z);*/
+
+        for (int i = 0; i < gameObject.transform.childCount; i++)
+        {
+            /*float x = transform.localPosition.x;
+            float y = transform.localPosition.y;
+            float z = transform.localPosition.z;
+            Vector3 Hector = new Vector3(x, y, z);
+
+            Vector3 Lindsey = transformation.toSpherical(x, y, z);
+
+            Lindsey.z += 1;
+            if(Lindsey.z > Mathf.PI)
+            {
+                Lindsey.z -= 2 * Mathf.PI;
+            }
+
+            Vector3 Phelba = transformation.toCartesian(Lindsey.x, Lindsey.y, Lindsey.z);
+
+            //this.gameObject.transform.GetChild(i).transform.localPosition = Phelba;
+
+            Vector3 Boris = Phelba - Hector;
+
+            this.gameObject.transform.GetChild(i).transform.Translate(Boris.x , Boris.y , Boris.z );*/
+
+            PlanetPositionScript Position = this.gameObject.transform.GetChild(i).GetComponent<PlanetPositionScript>();
+            
+            float x = 0.1f * Position.R  * Mathf.Cos(0.5f * Position.speed * Timecounter + Position.phi);//-----------------------une simple fonction cos/sin
+            float y = 0.1f * Position.R  * Mathf.Sin(0.5f * Position.speed * Timecounter + Position.phi);
+            float z = 0;
+
+            this.gameObject.transform.GetChild(i).transform.localPosition = new Vector3(x, y, z);
+
+        }
+    }
+}
