@@ -1,0 +1,10 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class PlanetPositionScript : MonoBehaviour {//-----------------------contient les variables utilisées par le script Variables de l'étoile pour déplacer la planète en orbite
+
+    public float R;
+    public float phi;
+    public float speed;
+}
