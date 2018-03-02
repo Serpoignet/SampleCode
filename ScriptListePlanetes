@@ -1,0 +1,25 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class ScriptListePlanetes : ScriptableObject {
+
+    public List<GameObject> Stars;
+    public List<GameObject> Planets;
+
+    public void setPlanets()//-----------------------crée la liste des planetes à partir de la liste des étoiles
+    {
+        foreach (GameObject starX in Stars)
+        {
+            for (int i = 0; i < starX.transform.childCount; i++)
+            {
+                Planets.Add(starX.transform.GetChild(i).gameObject);
+            }
+        }
+    }
+
+    public List<GameObject> getPlanets()
+    {
+        return Planets;
+    }
+}
