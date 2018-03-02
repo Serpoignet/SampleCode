@@ -1,0 +1,313 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class Flottes : MonoBehaviour {
+
+    private GameObject Univ;
+    public List<GameObject> listeFlottes;
+    public List<float[]> listeDestFlottes;
+    public List<float[]> listeDestPlanetes;
+    public List<float[]> listeDestCoord;
+    public Vector2 destFlottes;
+    public Vector2 destPlanete;
+    public Vector4 destCoord;
+    private int numJoueur;
+    private int nbVaisseaux;
+    private GameObject flottePrefab;
+    private double vitesse;
+    private GameObject flotteADeplacer;
+    private double inter;
+    private double deltaX;
+    private double deltaY;
+    private double deltaZ;
+
+
+    // Use this for initialization
+    void Start () {
+        Univ = GameObject.Find("Univers");
+        flottePrefab = (GameObject)Resources.Load("FlottePrefab", typeof(GameObject));
+        listeFlottes = new List<GameObject>();
+        listeDestCoord = new List<float[]>();
+        listeDestCoord.Add(new float[1]);
+        vitesse = 0.1;
+        listeDestPlanetes = new List<float[]>();    //--------------------On initialise les listes des destiations.
+        listeDestPlanetes.Add(new float[1]);        //--------------------On constate qu'il y a un problème quand la liste est entièrement comosé d'éléments null
+        listeDestFlottes = new List<float[]>();     //--------------------donc on crèe un élément inutilisé au début pour éviter ce problème
+        listeDestFlottes.Add(new float[1]);
+    }
+    
+	public void CreateFlotte (int numPlanete)
+    {
+        numJoueur = Univ.GetComponent<Possessions>().accessPlanetPossession(numPlanete);
+        Univ.GetComponent<Possessions>().addFleet(numJoueur);                               //---------On crèe les elements nécessaires dans les autres scripts
+
+        nbVaisseaux = Univ.GetComponent<Planetes>().emptyPlanet(numPlanete);
+
+        //Couleur
+        switch (numJoueur)
+        {
+            case 0:
+                flottePrefab = (GameObject)Resources.Load("FlottePrefab Grey", typeof(GameObject));
+                break;
+            case 1:
+                flottePrefab = (GameObject)Resources.Load("FlottePrefab Bleue", typeof(GameObject));
+                break;
+            case 2:
+                flottePrefab = (GameObject)Resources.Load("FlottePrefab Red", typeof(GameObject));
+                break;
+            case 3:
+                flottePrefab = (GameObject)Resources.Load("FlottePrefab Green", typeof(GameObject));
+                break;
+            case 4:
+                flottePrefab = (GameObject)Resources.Load("FlottePrefab Orange", typeof(GameObject));
+                break;
+            case 5:
+                flottePrefab = (GameObject)Resources.Load("FlottePrefab (5)", typeof(GameObject));
+                break;
+            case 6:
+                flottePrefab = (GameObject)Resources.Load("FlottePrefab (6)", typeof(GameObject));
+                break;
+            case 7:
+                flottePrefab = (GameObject)Resources.Load("FlottePrefab Dark Green", typeof(GameObject));
+                break;
+            default:
+                Debug.Log("Incorrect programmer intelligence level.");
+                break;
+        }
+
+        GameObject nouvelleFlotte = Instantiate(flottePrefab, Univ.GetComponent<Planetes>().getPlanet(numPlanete).transform.position, Quaternion.identity) as GameObject;
+        nouvelleFlotte.name = "Flotte " + listeFlottes.Count as string;
+        string Name = "Fleet " + listeFlottes.Count as string;
+        listeFlottes.Add(nouvelleFlotte);                               //On crèe la nouvelle flotte et on l'ajoute a la liste des flottes
+        GameObject.Find("Flottecanvas").transform.GetChild(0).GetChild(0).GetChild(0).gameObject.GetComponent<LinkButtonFlotte>().addButton(Name);
+        nouvelleFlotte.GetComponent<GererFlotte>().nbVaisseaux = this.nbVaisseaux;
+     }
+
+    public GameObject getFlotte(int index)
+    {
+        return listeFlottes[index];         //Renvoie la flotte index ( une flotte est obligatoirement a son index
+    }
+
+    public void destructionFlotte (int numFlotte)
+    {
+        GameObject flotteASuppr = listeFlottes[numFlotte];
+        listeFlottes[numFlotte] = null;                         //On supprime la flotte souhaitée
+        Destroy(flotteASuppr);  
+    }
+
+    public void merge(int numFlotte1, int numFlotte2)
+    {
+        GameObject flotteAMerge1 = listeFlottes[numFlotte1];
+        GameObject flotteAMerge2 = listeFlottes[numFlotte2];
+        flotteAMerge1.GetComponent<GererFlotte>().nbVaisseaux += flotteAMerge2.GetComponent<GererFlotte>().nbVaisseaux;//---------------On ajoute les vaisseaux d'une flotte a l'autre
+        cancelOrder(numFlotte2);                        //On annule les ordres de la flotte pour eviter qu'il essaye de déplacer une flotte qui n'existe plus puis on supprime la flotte
+        destructionFlotte(numFlotte2);                                      
+        Univ.GetComponent<Possessions>().deleteFleet(numFlotte2);
+        Destroy(GameObject.Find("Fleet " + numFlotte2 as string));
+    }
+
+    public void conquete ( int numFlotte, int numPlanete)
+    {
+        Univ.GetComponent<Planetes>().setTroops(numPlanete,listeFlottes[numFlotte].GetComponent<GererFlotte>().nbVaisseaux );
+        destructionFlotte(numFlotte);                           //On transforme les vaisseaux en troupes et on supprime la flotte
+    }
+
+    public void deplacer ( int numFlotte, float[] pos)              //On place les informations de déplacement dans le tableau de déplacement vers un position fixe
+    {
+        GameObject FlotteADeplacer = listeFlottes[numFlotte];
+        float[] destCoord = new float[7] ;
+        destCoord[0] = pos[0];
+        destCoord[1] = pos[1];
+        destCoord[2] = pos[2];                  //Correspond a la position
+        deltaX = (pos[0] - FlotteADeplacer.transform.position[0]);
+        deltaY = (pos[1] - FlotteADeplacer.transform.position[1]);
+        deltaZ = (pos[2] - FlotteADeplacer.transform.position[2]);
+        inter = Mathf.Sqrt((float) (deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ));
+        destCoord[3] = (float) (deltaX / inter);            // correspond au vecteur vitesse
+        destCoord[4] = (float) (deltaY / inter);
+        destCoord[5] = (float) (deltaZ / inter);
+        destCoord[6] = numFlotte;
+        listeDestCoord.Add(destCoord);
+    }
+
+    public void deplacerVersFlotte(int numFlotteADeplacer, int numFlotteAAteindre)     //On place dans un tableau les numero de flotte a déplacer et a atteindre
+    {
+        float[] informationsPourDeplacementVersFlotte = new float[2];
+        cancelOrder(numFlotteADeplacer);                                        
+        informationsPourDeplacementVersFlotte[0] = numFlotteADeplacer;
+        informationsPourDeplacementVersFlotte[1] = numFlotteAAteindre;
+        listeDestFlottes.Add(informationsPourDeplacementVersFlotte);
+    }
+
+    public void deplacerVersPlanete(int numFlotte, int numPlanete)              //On a choisit pour se déplacer vers une planete de d'abord se rapprocher de son étoile puis vers elle
+    {
+        cancelOrder(numFlotte);
+        GameObject FlotteADeplacer = listeFlottes[numFlotte];
+        GameObject Destination = Univ.GetComponent<Planetes>().getPlanet(numPlanete);
+        float[] posEtoile = new float[3];
+        float[] informationsPourDeplacementVersPlanete = new float[9];
+        posEtoile[0] = Destination.transform.parent.transform.position[0];
+        posEtoile[1] = Destination.transform.parent.transform.position[1];          //On commence donc par s'aprocher de l'étoile comme si c'était une position fixe
+        posEtoile[2] = Destination.transform.parent.transform.position[2];
+        deltaX = (posEtoile[0] - FlotteADeplacer.transform.position[0]);
+        deltaY = (posEtoile[1] - FlotteADeplacer.transform.position[1]);
+        deltaZ = (posEtoile[2] - FlotteADeplacer.transform.position[2]);
+        inter = Mathf.Sqrt((float)(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ));
+        informationsPourDeplacementVersPlanete[0] = posEtoile[0];
+        informationsPourDeplacementVersPlanete[1] = posEtoile[1];
+        informationsPourDeplacementVersPlanete[2] = posEtoile[2];
+        informationsPourDeplacementVersPlanete[3] = (float)(deltaX / inter);
+        informationsPourDeplacementVersPlanete[4] = (float)(deltaY / inter);
+        informationsPourDeplacementVersPlanete[5] = (float)(deltaZ / inter);
+        informationsPourDeplacementVersPlanete[6] = numFlotte;
+        informationsPourDeplacementVersPlanete[7] = numPlanete;
+        informationsPourDeplacementVersPlanete[8] = 0;      //Bouleen a t on atteint une distance raisonnable de l'étoile
+        listeDestPlanetes.Add(informationsPourDeplacementVersPlanete);
+    }
+
+    public void cancelOrder(int numFlotte)
+    {
+        //Debug.Log("I cancelled. Sorry.");
+        int k = 1;
+        while (k < listeDestPlanetes.Count)
+        {
+            int numFlotteEnDeplacement = (int)listeDestPlanetes[k][6];
+            if (numFlotteEnDeplacement == numFlotte)            // On recherche dans les tableaux les ordres concernant la flotte numflotte et on les supprimes
+            {
+                listeDestPlanetes.RemoveAt(k);
+                k--;
+            }
+            k++;
+        }
+        k = 1;
+        while (k < listeDestFlottes.Count)
+        {
+            int numFlotteEnDeplacement = (int)listeDestFlottes[k][0];
+            if (numFlotteEnDeplacement == numFlotte)
+            {
+                listeDestPlanetes.RemoveAt(k);
+                k--;
+            }
+            k++;
+        }
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        // déplacement vers position fixe ( non utilisé )
+        int i = 0;
+        foreach (float[] informationFlotteADeplacer in listeDestCoord)
+        {
+            if (i == 0)
+            {
+                i++;
+            }
+            else
+            {
+                listeFlottes[(int)informationFlotteADeplacer[6]].GetComponent<Transform>().Translate(15 * informationFlotteADeplacer[3] * Time.deltaTime, 15 * informationFlotteADeplacer[4] * Time.deltaTime, 15 * informationFlotteADeplacer[5] * Time.deltaTime);
+            }
+        }
+        int k = 1;
+        while (k < listeDestCoord.Count)
+        {
+            float[] informationFlotteADeplacer = listeDestCoord[k];
+            GameObject FlotteADeplacer = listeFlottes[(int)informationFlotteADeplacer[6]];
+            deltaX = (informationFlotteADeplacer[0] - FlotteADeplacer.transform.position[0]);
+            deltaY = (informationFlotteADeplacer[1] - FlotteADeplacer.transform.position[1]);
+            deltaZ = (informationFlotteADeplacer[2] - FlotteADeplacer.transform.position[2]);
+            if (deltaX < 1 && deltaY < 1 && deltaZ < 1)
+            {
+                listeDestCoord.RemoveAt(k);
+                k--;
+            }
+            k++;
+        }
+
+        // Déplacement vers une planete
+        k = 1;
+        while (k < listeDestPlanetes.Count)  
+        {
+            float[] informationFlotteADeplacer = listeDestPlanetes[k];   // on parcourt la liste des ordres
+            if (informationFlotteADeplacer[8] == 0)  // teste si on d'est assez rapproché de l'étoile
+            {  // si pas encore
+                GameObject FlotteADeplacer = listeFlottes[(int)informationFlotteADeplacer[6]];
+                deltaX = Mathf.Abs((informationFlotteADeplacer[0] - FlotteADeplacer.transform.position[0]));
+                deltaY = Mathf.Abs((informationFlotteADeplacer[1] - FlotteADeplacer.transform.position[1]));
+                deltaZ = Mathf.Abs((informationFlotteADeplacer[2] - FlotteADeplacer.transform.position[2]));
+                listeFlottes[(int)informationFlotteADeplacer[6]].GetComponent<Transform>().Translate(50 * informationFlotteADeplacer[3] * Time.deltaTime, 50 * informationFlotteADeplacer[4] * Time.deltaTime, 50 * informationFlotteADeplacer[5] * Time.deltaTime);
+                // on s'est déplacé vers la l'étoile de  50 * composante vecteur vitesse unitaire *deltatime( variant avec la vitesse de l'affichage des images)
+                if (deltaX < 400 && deltaY < 400 && deltaZ < 400)
+                {
+                    informationFlotteADeplacer[8] = 1;
+                }
+            }
+            else
+            {
+                GameObject FlotteADeplacer = listeFlottes[(int)informationFlotteADeplacer[6]];
+                GameObject Destination = Univ.GetComponent<Planetes>().getPlanet((int)informationFlotteADeplacer[7]);
+                float[] posPlanete = new float[3];
+                posPlanete[0] = Destination.transform.transform.position[0];
+                posPlanete[1] = Destination.transform.transform.position[1];
+                posPlanete[2] = Destination.transform.transform.position[2];
+                deltaX = (posPlanete[0] - FlotteADeplacer.transform.position[0]);
+                deltaY = (posPlanete[1] - FlotteADeplacer.transform.position[1]);
+                deltaZ = (posPlanete[2] - FlotteADeplacer.transform.position[2]);
+                inter = Mathf.Sqrt((float)(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ));
+                float vx = (float)(deltaX / inter);
+                float vy = (float)(deltaY / inter);
+                float vz = (float)(deltaZ / inter); // On calcule le les composantes du vecteur vitesse unitaire
+
+                listeFlottes[(int)informationFlotteADeplacer[6]].GetComponent<Transform>().Translate(50 * vx * Time.deltaTime, 50 * vy * Time.deltaTime, 50 * vz * Time.deltaTime); // On s'est déplacé vers la planète
+                deltaX = Mathf.Abs((posPlanete[0] - FlotteADeplacer.transform.position[0]));
+                deltaY = Mathf.Abs((posPlanete[1] - FlotteADeplacer.transform.position[1]));
+                deltaZ = Mathf.Abs((posPlanete[2] - FlotteADeplacer.transform.position[2]));
+                
+                if (deltaX < 0.05f && deltaY < 0.05f && deltaZ < 0.05f)
+                {
+                    GameObject.Find("Gestionnaire").GetComponent<GestionDistances>().conquerPlanet((int)informationFlotteADeplacer[6], (int)informationFlotteADeplacer[7]);
+                    listeDestPlanetes.RemoveAt(k); // si on est assez proche de la planete on "conquérit" la planète ( prend en compte si on la possède ou pas )
+                    k--;
+                }
+            }
+            k++;// <- Nicolas a mit 1h30 à trouver le problème ^^
+        }
+
+        //Se déplacer vers une flotte ( se déroule exactement comme la deuxième phase que se déplacer vers une planète
+        k = 1;
+        while (k < listeDestFlottes.Count)
+        {
+            float[] informationFlotteADeplacer = listeDestFlottes[k];
+
+            GameObject FlotteADeplacer = listeFlottes[(int)informationFlotteADeplacer[0]];
+            GameObject FlotteAAteindre = listeFlottes[(int)informationFlotteADeplacer[1]];
+            float[] posFlotteAAteindre = new float[3];
+            posFlotteAAteindre[0] = FlotteAAteindre.transform.transform.position[0];
+            posFlotteAAteindre[1] = FlotteAAteindre.transform.transform.position[1];
+            posFlotteAAteindre[2] = FlotteAAteindre.transform.transform.position[2];  
+            deltaX = (posFlotteAAteindre[0] - FlotteADeplacer.transform.position[0]);
+            deltaY = (posFlotteAAteindre[1] - FlotteADeplacer.transform.position[1]);
+            deltaZ = (posFlotteAAteindre[2] - FlotteADeplacer.transform.position[2]);
+            inter = Mathf.Sqrt((float)(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ));
+            float vx = (float)(deltaX / inter);
+            float vy = (float)(deltaY / inter);
+            float vz = (float)(deltaZ / inter);
+
+            listeFlottes[(int)informationFlotteADeplacer[0]].GetComponent<Transform>().Translate(70 * vx * Time.deltaTime, 70 * vy * Time.deltaTime, 70 * vz * Time.deltaTime);
+            deltaX = Mathf.Abs(posFlotteAAteindre[0] - FlotteADeplacer.transform.position[0]);
+            deltaY = Mathf.Abs(posFlotteAAteindre[1] - FlotteADeplacer.transform.position[1]);
+            deltaZ = Mathf.Abs(posFlotteAAteindre[2] - FlotteADeplacer.transform.position[2]);
+            if (deltaX < 0.1f && deltaY < 0.1f && deltaZ < 0.1f)
+            {
+                if (!GameObject.Find("Gestionnaire").GetComponent<GestionConflit>().isAttackPossible((int)informationFlotteADeplacer[0], (int)informationFlotteADeplacer[1], 'F'))
+                {                   // teste si ce n'est pas un adversaire et sinon combine les flottes ( si elles sont assez proches les flottes adverses se battent automatiquement
+                    merge((int)informationFlotteADeplacer[0], (int)informationFlotteADeplacer[1]);
+                    listeDestFlottes.RemoveAt(k);
+                    k--;
+                }
+            }
+            k++;
+        }
+    }
+}
